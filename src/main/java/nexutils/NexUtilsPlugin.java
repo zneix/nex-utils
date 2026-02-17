@@ -5,6 +5,7 @@ import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Actor;
 import net.runelite.api.Client;
+import net.runelite.api.Menu;
 import net.runelite.api.MenuEntry;
 import net.runelite.api.NPC;
 import net.runelite.api.coords.WorldPoint;
@@ -19,6 +20,9 @@ import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
+
+import java.util.Arrays;
+import java.util.Comparator;
 
 @Slf4j
 @PluginDescriptor(
@@ -36,6 +40,9 @@ public class NexUtilsPlugin extends Plugin
 
 	private boolean isNexFightActive = false;
 	private int lastNexBarrierValue = 0; // default value for the varbit
+
+	private final Comparator<MenuEntry> ALTAR_TP_OPTION =
+			Comparator.comparing(me -> me.getIdentifier() == ObjectID.NEX_ZAROS_ALTAR && me.getOption().equals("Teleport"));
 
 	@Override
 	protected void startUp() throws Exception
@@ -65,34 +72,8 @@ public class NexUtilsPlugin extends Plugin
 			return;
 		}
 
-		MenuEntry[] menuEntries = client.getMenu().getMenuEntries();
-		int teleportIndex = -1;
-		int topIndex = menuEntries.length - 1; // top option always has the last index
-		// Check if Altar's 'Teleport' menu entry is present
-        for (int i = 0; i < menuEntries.length; i++)
-		{
-			var entry = menuEntries[i];
-			//log.debug("me debug: {} {} {} {}", entry.getType(), entry.getOption(), entry.getTarget(), entry.getIdentifier());
-			if (entry.getIdentifier() == ObjectID.NEX_ZAROS_ALTAR && entry.getOption().equals("Teleport"))
-			{
-				teleportIndex = i;
-				break;
-			}
-        }
-
-		// Altar's 'Teleport' menu entry was not found, early out
-		if (teleportIndex == -1)
-		{
-			return;
-		}
-
-		// TODO: This works, but needs improving
-		MenuEntry entry1 = menuEntries[teleportIndex];
-		MenuEntry entry2 = menuEntries[topIndex];
-
-		menuEntries[teleportIndex] = entry2;
-		menuEntries[topIndex] = entry1;
-		client.getMenu().setMenuEntries(menuEntries);
+		Menu menu = client.getMenu();
+		menu.setMenuEntries(Arrays.stream(menu.getMenuEntries()).sorted(ALTAR_TP_OPTION).toArray(MenuEntry[]::new));
 	}
 
 	@Subscribe
