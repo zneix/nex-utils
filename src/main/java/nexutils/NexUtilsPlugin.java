@@ -9,7 +9,6 @@ import net.runelite.api.Menu;
 import net.runelite.api.MenuEntry;
 import net.runelite.api.NPC;
 import net.runelite.api.coords.WorldPoint;
-import net.runelite.api.events.CommandExecuted;
 import net.runelite.api.events.HitsplatApplied;
 import net.runelite.api.events.PostMenuSort;
 import net.runelite.api.events.SoundEffectPlayed;
@@ -39,7 +38,7 @@ public class NexUtilsPlugin extends Plugin
 	private NexUtilsConfig config;
 
 	private boolean isNexFightActive = false;
-	private int lastNexBarrierValue = 0; // default value for the varbit
+	private int lastNexBarrierValue = 0; // default value for the NEX_BARRIER varbit
 
 	private final Comparator<MenuEntry> ALTAR_TP_OPTION =
 			Comparator.comparing(me -> me.getIdentifier() == ObjectID.NEX_ZAROS_ALTAR && me.getOption().equals("Teleport"));
@@ -63,7 +62,6 @@ public class NexUtilsPlugin extends Plugin
 		return configManager.getConfig(NexUtilsConfig.class);
 	}
 
-	// TODO: Test if Nex detection actually works
 	@Subscribe
 	public void onPostMenuSort(PostMenuSort event)
 	{
@@ -87,25 +85,6 @@ public class NexUtilsPlugin extends Plugin
 		if (isInKcRoom(client.getLocalPlayer().getWorldLocation()))
 		{
 			event.consume();
-		}
-	}
-
-	@Subscribe
-	public void onCommandExecuted(CommandExecuted event)
-	{
-		// for debugging - type ::nu 1 or ::nu 0 to enable/disable fight state
-		if (!"nu".equals(event.getCommand()) || event.getArguments().length < 1)
-		{
-			return;
-		}
-
-		if (event.getArguments()[0].equals("1"))
-		{
-			isNexFightActive = true;
-		}
-		else if (event.getArguments()[0].equals("0"))
-		{
-			isNexFightActive = false;
 		}
 	}
 
