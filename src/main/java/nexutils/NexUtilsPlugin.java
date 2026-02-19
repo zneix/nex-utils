@@ -103,13 +103,9 @@ public class NexUtilsPlugin extends Plugin {
 		}
 
 		Actor actor = event.getActor();
-		if (!(actor instanceof NPC)) {
-			return;
-		}
-
 		// When a hitsplat is applied to Nex, this means the fight is active
 		// Checking for hitsplat works better in this case because if the intent is to leave, team will usually not attack her
-		if ("Nex".equals(actor.getName())) {
+		if (actor instanceof NPC && "Nex".equals(actor.getName())) {
 			isNexFightActive = true;
 		}
 	}
