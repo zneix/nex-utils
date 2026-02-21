@@ -9,6 +9,7 @@ import net.runelite.client.config.ConfigSection;
 public interface NexUtilsConfig extends Config {
 	String GROUP_KEY = "nex-utils";
 	String ALTAR_LEFT_CLICK_TP = "altar-left-click-tp";
+	String ALTAR_PREVENT_NO_ZAROS_ITEM = "altar-prevent-no-zaros-item";
 	String MUTE_BLOOD_REAVERS = "mute-blood-reavers";
 
 	@ConfigSection(
@@ -21,7 +22,7 @@ public interface NexUtilsConfig extends Config {
 
 	@ConfigItem(
 		keyName = ALTAR_LEFT_CLICK_TP,
-		name = "Left click 'Teleport' outside of fight",
+		name = "Left click tp when not in fight",
 		description = "Swaps left click on the altar to 'Teleport' when Nex isn't present.<br>"
 			+ "NOTE: This setting will still take effect if Nex spawns but hasn't been attacked yet (e.g. when leaving late)",
 		position = 0,
@@ -31,7 +32,16 @@ public interface NexUtilsConfig extends Config {
 		return false;
 	}
 
-	// TODO: Add altar overlay highlight
+	@ConfigItem(
+		keyName = ALTAR_PREVENT_NO_ZAROS_ITEM,
+		name = "Prevent use with no zaros item",
+		description = "Deprioritizes usage of altar options when no zaros items are equipped.",
+		position = 10,
+		section = altarSection
+	)
+	default boolean altarPreventNoZarosItem() {
+		return true;
+	}
 
 	@ConfigItem(
 		keyName = MUTE_BLOOD_REAVERS,

@@ -8,4 +8,6 @@ public class Constants {
 		110,    // blood_rush_impact
 		106     // blood_cast
 	);
+
+	static final int NEX_ARENA_REGION = 11601;
 }

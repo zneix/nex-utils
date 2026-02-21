@@ -1,0 +1,104 @@
+package nexutils;
+
+import net.runelite.api.gameval.ItemID;
+
+import java.util.Collection;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+public class ZarosItems {
+	static final Set<Integer> Weapon = Set.of(
+		ItemID.ANCIENT_GODSWORD,
+		ItemID.STAFF_OF_ZAROS,
+		ItemID.ANCIENT_SCEPTRE,
+		ItemID.ANCIENT_SCEPTRE_TROUVER,
+		ItemID.ANCIENT_SCEPTRE_BLOOD,
+		ItemID.ANCIENT_SCEPTRE_BLOOD_BROKEN,
+		ItemID.ANCIENT_SCEPTRE_BLOOD_TROUVER,
+		ItemID.ANCIENT_SCEPTRE_ICE,
+		ItemID.ANCIENT_SCEPTRE_ICE_BROKEN,
+		ItemID.ANCIENT_SCEPTRE_ICE_TROUVER,
+		ItemID.ANCIENT_SCEPTRE_SMOKE,
+		ItemID.ANCIENT_SCEPTRE_SMOKE_BROKEN,
+		ItemID.ANCIENT_SCEPTRE_SMOKE_TROUVER,
+		ItemID.ANCIENT_SCEPTRE_SHADOW,
+		ItemID.ANCIENT_SCEPTRE_SHADOW_BROKEN,
+		ItemID.ANCIENT_SCEPTRE_SHADOW_TROUVER,
+		ItemID.TRAIL_ANCIENT_STAFF,
+		ItemID.VENATOR_BOW,
+		ItemID.VENATOR_BOW_UNCHARGED,
+		ItemID.VENATOR_BOW_ORNAMENT,
+		ItemID.VENATOR_BOW_ORNAMENT_UNCHARGED,
+		ItemID.ZARYTE_XBOW
+	);
+
+	static final Set<Integer> Offhand = Set.of(
+		ItemID.UNFINISHED_ZAROSBOOK,
+		ItemID.ZAROSBOOK_COMPLETE,
+		ItemID.RUNE_KITESHIELD_ANCIENT,
+		ItemID.BLESSED_DHIDE_SHIELD_ANCIENT
+	);
+
+	static final Set<Integer> Head = Set.of(
+		ItemID.TRAIL_ANCIENT_COIF,
+		ItemID.RUNE_FULL_HELM_ANCIENT,
+		ItemID.TRAIL_ANCIENT_MITRE,
+		ItemID.ZAROS_HALO,
+		ItemID.ZAROS_HALO_BROKEN,
+		ItemID.ZAROS_HALO_TROUVER,
+		ItemID.ANCIENT_CEREMONIAL_MASK,
+		ItemID.TORVA_HELM,
+		ItemID.TORVA_HELM_SANGUINE,
+		ItemID.VIRTUS_MASK,
+		ItemID.VIRTUS_MASK_ORNAMENT,
+		ItemID.ROBE_DARKNESS_HEAD
+	);
+
+	static final Set<Integer> Cape = Set.of(ItemID.TRAIL_ANCIENT_CLOAK);
+
+	static final Set<Integer> Body = Set.of(
+		ItemID.RUNE_PLATEBODY_ANCIENT,
+		ItemID.TRAIL_ANCIENT_CHEST,
+		ItemID.TRAIL_ANCIENT_ROBE_T,
+		ItemID.TORVA_CHEST,
+		ItemID.TORVA_CHEST_SANGUINE,
+		ItemID.VIRTUS_TOP,
+		ItemID.VIRTUS_TOP_ORNAMENT,
+		ItemID.ANCIENT_CEREMONIAL_TOP,
+		ItemID.ROBE_DARKNESS_TOP
+	);
+
+	static final Set<Integer> Legs = Set.of(
+		ItemID.RUNE_PLATELEGS_ANCIENT,
+		ItemID.RUNE_PLATESKIRT_ANCIENT,
+		ItemID.TRAIL_ANCIENT_CHAPS,
+		ItemID.TRAIL_ANCIENT_ROBE_L,
+		ItemID.TORVA_LEGS,
+		ItemID.TORVA_LEGS_SANGUINE,
+		ItemID.VIRTUS_LEGS,
+		ItemID.VIRTUS_LEGS_ORNAMENT,
+		ItemID.ANCIENT_CEREMONIAL_LEGS,
+		ItemID.ROBE_DARKNESS_LEGS
+	);
+
+	static final Set<Integer> Gloves = Set.of(
+		ItemID.TRAIL_ANCIENT_VAMBRACES,
+		ItemID.ZARYTE_VAMBRACES,
+		ItemID.ANCIENT_CEREMONIAL_GLOVES,
+		ItemID.ROBE_DARKNESS_HANDS
+	);
+
+	static final Set<Integer> Boots = Set.of(
+		ItemID.BLESSED_BOOTS_ANCIENT,
+		ItemID.ANCIENT_CEREMONIAL_BOOTS,
+		ItemID.ROBE_DARKNESS_FEET
+	);
+
+	static final Set<Integer> Ammo = Set.of(ItemID.BLESSING_ZAROS);
+
+	static final Set<Integer> Amulet = Set.of(ItemID.TRAIL_ANCIENT_SCARF);
+
+	static final Set<Integer> All = Stream.of(Weapon, Offhand, Head, Cape, Body, Legs, Gloves, Boots, Ammo, Amulet)
+		.flatMap(Collection::stream).collect(Collectors.toSet());
+}
