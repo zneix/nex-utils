@@ -78,10 +78,16 @@ public class NexUtilsPlugin extends Plugin {
 	private BufferedImage altarOverlayImage;
 	@Getter
 	private boolean zarosItemEquipped = false;
+	private boolean emptyInventorySlots = false;
 	private boolean isNexFightActive = false;
 	private int lastNexBarrierValue = 0; // default value for the NEX_BARRIER varbit
 
-	private final String DUMMY_OPTION_TEXT = ColorUtil.wrapWithColorTag("Equip a zaros item!", new Color(255,106,213,255).brighter());
+	private static String menuEntryColor(String optionText) {
+		return ColorUtil.wrapWithColorTag(optionText, new Color(255,106,213,255).brighter());
+	}
+
+	private final String ALTAR_DUMMY_OPTION_TEXT = menuEntryColor("Equip a zaros item!");
+	private final String ENTRANCE_DUMMY_OPTION_TEXT = menuEntryColor("Fill your inventory!");
 	private final Comparator<MenuEntry> ALTAR_TP_OPTION =
 		Comparator.comparing(me -> me.getIdentifier() == ObjectID.NEX_ZAROS_ALTAR && me.getOption().equals("Teleport"));
 
@@ -95,9 +101,14 @@ public class NexUtilsPlugin extends Plugin {
 		overlayManager.add(altarOverlay);
 
 		clientThread.invoke(() -> {
-			final ItemContainer container = client.getItemContainer(InventoryID.WORN);
-			if (container != null) {
-				zarosItemEquipped = checkAnyZarosItemEquipped(container);
+			final ItemContainer wornItems = client.getItemContainer(InventoryID.WORN);
+			if (wornItems != null) {
+				zarosItemEquipped = checkAnyZarosItemEquipped(wornItems);
+			}
+
+			final ItemContainer inventoryItems = client.getItemContainer(InventoryID.INV);
+			if (inventoryItems != null) {
+				emptyInventorySlots = checkAnyEmptyInvSlots(inventoryItems);
 			}
 		});
 	}
@@ -146,6 +157,10 @@ public class NexUtilsPlugin extends Plugin {
 		if (event.getContainerId() == InventoryID.WORN) {
 			zarosItemEquipped = checkAnyZarosItemEquipped(event.getItemContainer());
 		}
+
+		if (event.getContainerId() == InventoryID.INV) {
+			emptyInventorySlots = checkAnyEmptyInvSlots(event.getItemContainer());
+		}
 	}
 
 	@Subscribe
@@ -154,25 +169,12 @@ public class NexUtilsPlugin extends Plugin {
 			return;
 		}
 
+		if (emptyInventorySlots && config.entrancePreventEmptyInv()) {
+			deprioritizeMenuEntry(ObjectID.NEX_FIGHT_BARRIER, ENTRANCE_DUMMY_OPTION_TEXT, true);
+		}
+
 		if (!zarosItemEquipped && config.altarPreventNoZarosItem()) {
-			// Insert a dummy menu option and put rest of the options down
-			MenuEntry[] entries = client.getMenu().getMenuEntries();
-			if (entries.length < 1) {
-				return;
-			}
-			// Entries are always returned in "reverse" - top option is last
-			int topEntryIndex = entries.length - 1;
-			MenuEntry topEntry = entries[topEntryIndex];
-			// Only perform work if hovered option is related to altar
-			if (topEntry.getIdentifier() != ObjectID.NEX_ZAROS_ALTAR) {
-				return;
-			}
-			// Create list of new entries which will include new dummy option on top
-			MenuEntry[] newEntries = new MenuEntry[entries.length + 1];
-			System.arraycopy(entries, 0, newEntries, 0, entries.length);
-			// Insert new dummy entry; putting it at the end makes it the top option
-			newEntries[newEntries.length - 1] = client.getMenu().createMenuEntry(0).setType(MenuAction.CANCEL).setOption(DUMMY_OPTION_TEXT).setTarget("");
-			client.getMenu().setMenuEntries(newEntries);
+			deprioritizeMenuEntry(ObjectID.NEX_ZAROS_ALTAR, ALTAR_DUMMY_OPTION_TEXT, false);
 		} else if (!isNexFightActive && config.altarLeftClickTp()) {
 			// Sort entries by putting teleport option on top
 			Menu menu = client.getMenu();
@@ -225,7 +227,7 @@ public class NexUtilsPlugin extends Plugin {
 		if (!event.getCommand().equals("nu")) {
 			return;
 		}
-		log.debug("item {} altar obj {} fight active {} loc {} regID {} instance? {}", zarosItemEquipped, altarObject, isNexFightActive,
+		log.debug("empty slots? {} item {} altar obj {} fight active {} loc {} regID {} instance? {}", emptyInventorySlots, zarosItemEquipped, altarObject, isNexFightActive,
 			client.getLocalPlayer().getWorldLocation(), client.getLocalPlayer().getWorldLocation().getRegionID(), client.getTopLevelWorldView().isInstance());
 	}
 
@@ -286,6 +288,40 @@ public class NexUtilsPlugin extends Plugin {
 
 		final Item neck = container.getItem(EquipmentInventorySlot.AMULET.getSlotIdx());
 		return neck != null && ZarosItems.Amulet.contains(neck.getId());
+	}
+
+	private boolean checkAnyEmptyInvSlots(ItemContainer inventoryItems) {
+		for (Item invItem : inventoryItems.getItems()) {
+			if (invItem.getId() == -1) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private void deprioritizeMenuEntry(int object, String textToShow, boolean isEntrance) {
+		// Insert a dummy menu option and put rest of the options down
+		MenuEntry[] entries = client.getMenu().getMenuEntries();
+		if (entries.length < 1) {
+			return;
+		}
+		// Entries are always returned in "reverse" - top option is last
+		int topEntryIndex = entries.length - 1;
+		MenuEntry topEntry = entries[topEntryIndex];
+		// Only perform work if hovered option is related to altar
+		if (topEntry.getIdentifier() != object) {
+			return;
+		}
+		if (isEntrance && !topEntry.getOption().startsWith("Pass (")) {
+			// Condition specific to entrance barrier - don't deprio non-entrance options, e.g. 'Peek'
+			return;
+		}
+		// Create list of new entries which will include new dummy option on top
+		MenuEntry[] newEntries = new MenuEntry[entries.length + 1];
+		System.arraycopy(entries, 0, newEntries, 0, entries.length);
+		// Insert new dummy entry; putting it at the end makes it the top option
+		newEntries[newEntries.length - 1] = client.getMenu().createMenuEntry(0).setType(MenuAction.CANCEL).setOption(textToShow).setTarget("");
+		client.getMenu().setMenuEntries(newEntries);
 	}
 
 	public static BufferedImage resize(BufferedImage img, int newW, int newH) {

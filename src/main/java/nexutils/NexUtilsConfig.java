@@ -11,6 +11,7 @@ public interface NexUtilsConfig extends Config {
 	String ALTAR_LEFT_CLICK_TP = "altar-left-click-tp";
 	String ALTAR_PREVENT_NO_ZAROS_ITEM = "altar-prevent-no-zaros-item";
 	String MUTE_BLOOD_REAVERS = "mute-blood-reavers";
+	String ENTRANCE_PREVENT_EMPTY_INV = "entrance-prevent-empty-inv";
 
 	@ConfigSection(
 		name = "Altar",
@@ -51,5 +52,16 @@ public interface NexUtilsConfig extends Config {
 	)
 	default boolean muteBloodReavers() {
 		return false;
+	}
+
+	@ConfigItem(
+		keyName = ENTRANCE_PREVENT_EMPTY_INV,
+		name = "Prevent entry when inv isn't full",
+		description = "Deprioritizes usage of entrance barrier to Nex arena when inventory isn't completely full.<br>"
+			+ "Helps if you accidentally don't withdraw e.g. food items after pre-potting.",
+		position = 10
+	)
+	default boolean entrancePreventEmptyInv() {
+		return true;
 	}
 }
