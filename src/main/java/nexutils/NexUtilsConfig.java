@@ -22,6 +22,14 @@ public interface NexUtilsConfig extends Config {
 	)
 	String altarSection = "Altar";
 
+	@ConfigSection(
+		name = "Miscellaneous",
+		description = "Uncategorized changes",
+		position = 10,
+		closedByDefault = false
+	)
+	String miscSection = "Miscellaneous";
+
 	@ConfigItem(
 		keyName = ALTAR_LEFT_CLICK_TP,
 		name = "Left click tp when not in fight",
@@ -49,7 +57,8 @@ public interface NexUtilsConfig extends Config {
 		keyName = MUTE_BLOOD_REAVERS,
 		name = "Mute Blood Reavers in kc room",
 		description = "Mutes Blood Reaver attacks in the minion room before bank.",
-		position = 0
+		position = 0,
+		section = miscSection
 	)
 	default boolean muteBloodReavers() {
 		return false;
@@ -60,7 +69,8 @@ public interface NexUtilsConfig extends Config {
 		name = "Prevent entry when inv isn't full",
 		description = "Deprioritizes usage of entrance barrier to Nex arena when inventory isn't completely full.<br>"
 			+ "Helps if you accidentally don't withdraw e.g. food items after pre-potting.",
-		position = 10
+		position = 10,
+		section = miscSection
 	)
 	default boolean entrancePreventEmptyInv() {
 		return true;
@@ -71,7 +81,8 @@ public interface NexUtilsConfig extends Config {
 		name = "Open game chat when Nex dies",
 		description = "Opens game chat upon a successful kill.<br>"
 			+ "Aims to help to include kill time & mvp status for loot screenshots.",
-		position = 20
+		position = 20,
+		section = miscSection
 	)
 	default boolean reopenChatOnFinish() {
 		return false;
