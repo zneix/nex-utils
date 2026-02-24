@@ -12,6 +12,7 @@ public interface NexUtilsConfig extends Config {
 	String ALTAR_PREVENT_NO_ZAROS_ITEM = "altar-prevent-no-zaros-item";
 	String MUTE_BLOOD_REAVERS = "mute-blood-reavers";
 	String ENTRANCE_PREVENT_EMPTY_INV = "entrance-prevent-empty-inv";
+	String REOPEN_CHAT_ON_FINISH = "reopen-chat-on-finish";
 
 	@ConfigSection(
 		name = "Altar",
@@ -63,5 +64,16 @@ public interface NexUtilsConfig extends Config {
 	)
 	default boolean entrancePreventEmptyInv() {
 		return true;
+	}
+
+	@ConfigItem(
+		keyName = REOPEN_CHAT_ON_FINISH,
+		name = "Open game chat when Nex dies",
+		description = "Opens game chat upon a successful kill.<br>"
+			+ "Aims to help to include kill time & mvp status for loot screenshots.",
+		position = 20
+	)
+	default boolean reopenChatOnFinish() {
+		return false;
 	}
 }

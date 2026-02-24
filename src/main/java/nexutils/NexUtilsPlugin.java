@@ -31,6 +31,7 @@ import net.runelite.api.events.VarbitChanged;
 import net.runelite.api.gameval.InventoryID;
 import net.runelite.api.gameval.ItemID;
 import net.runelite.api.gameval.ObjectID;
+import net.runelite.api.gameval.VarClientID;
 import net.runelite.api.gameval.VarbitID;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
@@ -207,13 +208,24 @@ public class NexUtilsPlugin extends Plugin {
 		if (event.getVarbitId() != VarbitID.NEX_BARRIER) {
 			return;
 		}
+		int newValue = event.getValue();
 
 		// Nex fight has either just ended or the player has left the fight
 		if (lastNexBarrierValue == 3) {
 			isNexFightActive = false;
+			if (newValue == 2 && config.reopenChatOnFinish()) {
+				// (3 -> 2) Nex died and fight was completed successfully, reopen chatbox if desired
+				// Only toggle/open chat if it's not set to 'Game'
+				if (client.getVarcIntValue(VarClientID.CHAT_VIEW) != 1) {
+					// Script ID 175 - clientscript,chat_button_onop
+					// argument #1 - operation to perform on selected chat tab (1 = opens the tab)
+					// argument #2 - value of CHAT_VIEW / chat tab to open (1 = 'Game')
+					clientThread.invokeLater(() -> client.runScript(175, 1, 1));
+				}
+			}
 		}
 
-		lastNexBarrierValue = event.getValue();
+		lastNexBarrierValue = newValue;
 	}
 
 	@Subscribe
