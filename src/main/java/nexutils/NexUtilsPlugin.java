@@ -169,16 +169,25 @@ public class NexUtilsPlugin extends Plugin {
 			return;
 		}
 
-		if (emptyInventorySlots && config.entrancePreventEmptyInv()) {
-			deprioritizeMenuEntry(ObjectID.NEX_FIGHT_BARRIER, ENTRANCE_DUMMY_OPTION_TEXT, true);
+		MenuEntry[] entries = client.getMenu().getMenuEntries();
+		if (entries.length < 1) {
+			return;
 		}
+		// Entries are always returned in "reverse" - top option is last
+		MenuEntry topEntry = entries[entries.length - 1];
 
-		if (!zarosItemEquipped && config.altarPreventNoZarosItem()) {
-			deprioritizeMenuEntry(ObjectID.NEX_ZAROS_ALTAR, ALTAR_DUMMY_OPTION_TEXT, false);
-		} else if (!isNexFightActive && config.altarLeftClickTp()) {
-			// Sort entries by putting teleport option on top
-			Menu menu = client.getMenu();
-			menu.setMenuEntries(Arrays.stream(menu.getMenuEntries()).sorted(ALTAR_TP_OPTION).toArray(MenuEntry[]::new));
+		if (topEntry.getIdentifier() == ObjectID.NEX_FIGHT_BARRIER && topEntry.getOption().startsWith("Pass (")) {
+			if (emptyInventorySlots && config.entrancePreventEmptyInv()) {
+				deprioritizeMenuEntry(entries, ENTRANCE_DUMMY_OPTION_TEXT);
+			}
+		} else if (topEntry.getIdentifier() == ObjectID.NEX_ZAROS_ALTAR) {
+			if (!zarosItemEquipped && config.altarPreventNoZarosItem()) {
+				deprioritizeMenuEntry(entries, ALTAR_DUMMY_OPTION_TEXT);
+			} else if (!isNexFightActive && config.altarLeftClickTp()) {
+				// Sort entries by putting teleport option on top
+				Menu menu = client.getMenu();
+				menu.setMenuEntries(Arrays.stream(menu.getMenuEntries()).sorted(ALTAR_TP_OPTION).toArray(MenuEntry[]::new));
+			}
 		}
 	}
 
@@ -299,23 +308,8 @@ public class NexUtilsPlugin extends Plugin {
 		return false;
 	}
 
-	private void deprioritizeMenuEntry(int object, String textToShow, boolean isEntrance) {
-		// Insert a dummy menu option and put rest of the options down
-		MenuEntry[] entries = client.getMenu().getMenuEntries();
-		if (entries.length < 1) {
-			return;
-		}
-		// Entries are always returned in "reverse" - top option is last
-		int topEntryIndex = entries.length - 1;
-		MenuEntry topEntry = entries[topEntryIndex];
-		// Only perform work if hovered option is related to altar
-		if (topEntry.getIdentifier() != object) {
-			return;
-		}
-		if (isEntrance && !topEntry.getOption().startsWith("Pass (")) {
-			// Condition specific to entrance barrier - don't deprio non-entrance options, e.g. 'Peek'
-			return;
-		}
+	// Insert a dummy menu option and put rest of the options down
+	private void deprioritizeMenuEntry(MenuEntry[] entries, String textToShow) {
 		// Create list of new entries which will include new dummy option on top
 		MenuEntry[] newEntries = new MenuEntry[entries.length + 1];
 		System.arraycopy(entries, 0, newEntries, 0, entries.length);
