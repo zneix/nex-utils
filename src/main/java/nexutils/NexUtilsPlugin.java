@@ -79,16 +79,21 @@ public class NexUtilsPlugin extends Plugin {
 	private BufferedImage altarOverlayImage;
 	@Getter
 	private boolean zarosItemEquipped = false;
-	private boolean emptyInventorySlots = false;
+
+	// Entrance prevention flags
+	private boolean entrancePreventEmptyInventorySlots = false;
+	private boolean entrancePreventChuggingBarrel = false;
+	private boolean entrancePreventSaturatedHeart = false;
+	private boolean entrancePreventNoBOTD = false;
+
+
 	private boolean isNexFightActive = false;
 	private int lastNexBarrierValue = 0; // default value for the NEX_BARRIER varbit
 
 	private static String menuEntryColor(String optionText) {
-		return ColorUtil.wrapWithColorTag(optionText, new Color(255,106,213,255).brighter());
+		return ColorUtil.wrapWithColorTag(optionText, new Color(255, 106, 213, 255).brighter());
 	}
 
-	private final String ALTAR_DUMMY_OPTION_TEXT = menuEntryColor("Equip a zaros item!");
-	private final String ENTRANCE_DUMMY_OPTION_TEXT = menuEntryColor("Fill your inventory!");
 	private final Comparator<MenuEntry> ALTAR_TP_OPTION =
 		Comparator.comparing(me -> me.getIdentifier() == ObjectID.NEX_ZAROS_ALTAR && me.getOption().equals("Teleport"));
 
@@ -109,7 +114,7 @@ public class NexUtilsPlugin extends Plugin {
 
 			final ItemContainer inventoryItems = client.getItemContainer(InventoryID.INV);
 			if (inventoryItems != null) {
-				emptyInventorySlots = checkAnyEmptyInvSlots(inventoryItems);
+				checkInventorySlots(inventoryItems);
 			}
 		});
 	}
@@ -160,7 +165,7 @@ public class NexUtilsPlugin extends Plugin {
 		}
 
 		if (event.getContainerId() == InventoryID.INV) {
-			emptyInventorySlots = checkAnyEmptyInvSlots(event.getItemContainer());
+			checkInventorySlots(event.getItemContainer());
 		}
 	}
 
@@ -178,12 +183,21 @@ public class NexUtilsPlugin extends Plugin {
 		MenuEntry topEntry = entries[entries.length - 1];
 
 		if (topEntry.getIdentifier() == ObjectID.NEX_FIGHT_BARRIER && topEntry.getOption().startsWith("Pass (")) {
-			if (emptyInventorySlots && config.entrancePreventEmptyInv()) {
-				deprioritizeMenuEntry(entries, ENTRANCE_DUMMY_OPTION_TEXT);
+			if (entrancePreventEmptyInventorySlots && config.entrancePreventEmptyInv()) {
+				deprioritizeMenuEntry(entries, menuEntryColor("Fill your inventory!"));
+			}
+			if (entrancePreventChuggingBarrel && config.entrancePreventChuggingBarrel()) {
+				deprioritizeMenuEntry(entries, menuEntryColor("Bank your Chugging barrel!"));
+			}
+			if (entrancePreventSaturatedHeart && config.entrancePreventSaturatedHeart()) {
+				deprioritizeMenuEntry(entries, menuEntryColor("Bank your Saturated heart!"));
+			}
+			if (entrancePreventNoBOTD && config.entrancePreventNoBOTD()) {
+				deprioritizeMenuEntry(entries, menuEntryColor("Where's your Book of the dead?"));
 			}
 		} else if (topEntry.getIdentifier() == ObjectID.NEX_ZAROS_ALTAR) {
 			if (!zarosItemEquipped && config.altarPreventNoZarosItem()) {
-				deprioritizeMenuEntry(entries, ALTAR_DUMMY_OPTION_TEXT);
+				deprioritizeMenuEntry(entries, menuEntryColor("Equip a zaros item!"));
 			} else if (!isNexFightActive && config.altarLeftClickTp()) {
 				// Sort entries by putting teleport option on top
 				Menu menu = client.getMenu();
@@ -248,7 +262,7 @@ public class NexUtilsPlugin extends Plugin {
 		if (!event.getCommand().equals("nu")) {
 			return;
 		}
-		log.debug("empty slots? {} item {} altar obj {} fight active {} loc {} regID {} instance? {}", emptyInventorySlots, zarosItemEquipped, altarObject, isNexFightActive,
+		log.debug("empty slots? {} item {} altar obj {} fight active {} loc {} regID {} instance? {}", entrancePreventEmptyInventorySlots, zarosItemEquipped, altarObject, isNexFightActive,
 			client.getLocalPlayer().getWorldLocation(), client.getLocalPlayer().getWorldLocation().getRegionID(), client.getTopLevelWorldView().isInstance());
 	}
 
@@ -311,13 +325,42 @@ public class NexUtilsPlugin extends Plugin {
 		return neck != null && ZarosItems.Amulet.contains(neck.getId());
 	}
 
-	private boolean checkAnyEmptyInvSlots(ItemContainer inventoryItems) {
+	// Check inventory slots for empty ones and presence of other notable items that should prevent entering
+	private void checkInventorySlots(ItemContainer inventoryItems) {
+		boolean hasAnySlotEmpty = false;
+		boolean hasChuggingBarrel = false;
+		boolean hasSaturatedHeart = false;
+		boolean hasBOTD = false;
+
 		for (Item invItem : inventoryItems.getItems()) {
-			if (invItem.getId() == -1) {
-				return true;
+			switch (invItem.getId()) {
+				// Check for empty item slot
+				case -1:
+					hasAnySlotEmpty = true;
+					break;
+
+				// Check for chugging barrel
+				case ItemID.MM_PREPOT_DEVICE:
+					hasChuggingBarrel = true;
+					break;
+
+				// Check for saturated or imbued heart
+				case ItemID.IMBUED_HEART:
+				case ItemID.SATURATED_HEART:
+					hasSaturatedHeart = true;
+					break;
+
+				// Check for Book of the dead
+				case ItemID.BOOK_OF_THE_DEAD:
+					hasBOTD = true;
+					break;
 			}
 		}
-		return false;
+
+		entrancePreventEmptyInventorySlots = hasAnySlotEmpty;
+		entrancePreventChuggingBarrel = hasChuggingBarrel;
+		entrancePreventSaturatedHeart = hasSaturatedHeart;
+		entrancePreventNoBOTD = !hasBOTD; // inverted, because the prevention boolean should indicate lack of BOTD
 	}
 
 	// Insert a dummy menu option and put rest of the options down
